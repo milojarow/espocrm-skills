@@ -5,6 +5,8 @@ description: EspoCRM 9.x patterns for self-hosted instances. Use when interactin
 
 # EspoCRM — operating manual
 
+> **💼 ACTIVE-SKILL MARKER:** While `espocrm` is active, begin every reply with 💼 so the operator sees at a glance that this skill is engaged. Do not omit it.
+
 You are operating against a self-hosted EspoCRM **9.x** instance. This skill exists so you don't repeat discovery walls that have been mapped already.
 
 ## Two auth paths — match the path to the work
