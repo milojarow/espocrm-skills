@@ -90,6 +90,8 @@ EspoCRM has a `type` discriminator on User:
 - `regular` — normal user, password auth, scoped by Roles + Teams
 - `api` — service account, X-Api-Key auth (and HMAC), no UI login
 - `portal` — customer portal user
+- `super-admin` — the type exists and the code has an `isSuperAdmin()` check, but in a standard setup it grants no extra power over `admin`: a regular `admin` already has unrestricted access to the entire admin panel. Treat it as equivalent to `admin` in practice.
+- `system` — internal framework user type, not a human login
 
 ### Team
 
