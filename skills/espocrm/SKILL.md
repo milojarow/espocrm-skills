@@ -64,6 +64,7 @@ Detail with payloads and response shapes: [reference/api-endpoints.md](reference
 - The MCP returns generic "Invalid request data" for any 4xx. The actual `messageTranslation` field with the offending field name is in the raw response body — fall back to admin script or curl when the MCP message is insufficient.
 - The api user does NOT see itself in `search_users` results — expected, not a bug.
 - An admin auth helper script that prints HTTP status to stderr and body to stdout requires you to NOT grep across both at once.
+- **Records dashlets ignore `where` / `searchData.advanced`** — they silently drop everything except `primaryFilter` and `boolFilterList`. Filtering a dashlet needs a **named primary filter** (PHP class + JSON on the container filesystem — not settable via REST). See the primary-filters section of [reference/api-endpoints.md](reference/api-endpoints.md) and the ready templates in [scripts/primary-filter-templates/](scripts/primary-filter-templates/).
 
 Full catalog with response excerpts: [reference/common-errors.md](reference/common-errors.md).
 

@@ -19,7 +19,7 @@ The Records dashlet's `getSearchData()` only reads `primaryFilter` and `boolFilt
 
 ## Important gotchas
 
-- **Native entity filterList is REPLACED, not merged**. If you add a custom filter to a native entity (Lead, Account, Contact, Opportunity), the `clientDefs.filterList` in your custom file must list the native filters too, or they disappear. `selectDefs.primaryFilterClassNameMap` does merge per-key. See `lead-filterlist-merge-warning.md`.
+- **Native entity filterList is REPLACED, not merged**. If you add a custom filter to a native entity (Lead, Account, Contact, Opportunity), the `clientDefs.filterList` in your custom file must list the native filters too, or they disappear. `selectDefs.primaryFilterClassNameMap` does merge per-key. See the `clientDefs-Lead.json` template in this folder for the correct full-list override.
 - **Custom entity filterList is a fresh override**. For CSubscription/CInvoice/CPayment, the file may not exist yet, so you create the full `filterList` array.
 - **PSR-4 autoload**: `Espo\Custom\Classes\` maps to `custom/Espo/Custom/Classes/`. The directory structure must match the namespace exactly.
 - **Permissions after editing**: `chown -R www-data:www-data /var/www/html/custom/` — otherwise PHP can't read the new files.
