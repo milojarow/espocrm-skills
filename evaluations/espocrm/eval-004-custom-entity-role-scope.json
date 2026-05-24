@@ -1,0 +1,15 @@
+{
+  "id": "espocrm-004",
+  "skills": ["espocrm"],
+  "query": "I just created a new custom entity 'Policy' via EntityManager. The admin user can create Policy records, but the api-user (and the MCP) gets 403. Why, and how do I fix it?",
+  "expected_behavior": [
+    "Activate the espocrm skill",
+    "Explain that creating a custom entity does NOT auto-update existing roles, so the api-user has no scope on the new entity and gets 403 on create/update/delete",
+    "Fix: update the api-user's role data to add the new entity scope (read=all, edit=all, create=yes, delete=all) via the admin path",
+    "Stress the HARD RULE: do NOT fall back to admin auth to seed the records — update the role first, then create records via the api-user",
+    "Reference common-errors.md (403 — custom entity created after the role) and scripts/create-custom-entity-checklist.md"
+  ],
+  "expected_content": ["role", "scope", "403", "api-user", "admin"],
+  "priority": "high",
+  "notes": "Tests both the root cause (role not auto-updated) and the discipline (don't take the admin shortcut)."
+}

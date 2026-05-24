@@ -1,0 +1,16 @@
+{
+  "id": "espocrm-001",
+  "skills": ["espocrm"],
+  "query": "A customer just signed for a recurring monthly website + hosting package. How do I record this ongoing service in EspoCRM?",
+  "expected_behavior": [
+    "Activate the espocrm skill",
+    "Model the recurring service as a CSubscription custom entity, NOT an Opportunity (Opportunity is the sales pipeline; a signed recurring service is post-sale)",
+    "Create the record via the api-user (X-Api-Key / MCP), never the admin auth path (HARD RULE — admin-created records pollute streams, createdBy attribution, and audit logs)",
+    "Set account (accountId), serviceType, status, and monthlyAmount together with monthlyAmountCurrency",
+    "For a package of several services, create one CSubscription per service so one can be Paused without re-pricing the package",
+    "Reference customer-modeling.md and entities.md"
+  ],
+  "expected_content": ["CSubscription", "api-user", "monthlyAmountCurrency", "Opportunity", "customer-modeling.md"],
+  "priority": "high",
+  "notes": "Must NOT suggest admin auth for record creation, even for initial seeding. Must distinguish Subscription (recurring) from Opportunity (pipeline)."
+}

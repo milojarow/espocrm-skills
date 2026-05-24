@@ -1,0 +1,33 @@
+{
+  "name": "espocrm-skills",
+  "description": "Expert skills for operating self-hosted EspoCRM",
+  "owner": {
+    "name": "milojarow",
+    "url": "https://github.com/milojarow"
+  },
+  "plugins": [
+    {
+      "name": "espocrm-skills",
+      "source": "./",
+      "description": "Operating manual for self-hosted EspoCRM 9.x — REST API and MCP patterns, the two auth flows, customer modeling, custom entities, and the API walls already mapped.",
+      "version": "0.1.0",
+      "author": {
+        "name": "milojarow",
+        "url": "https://github.com/milojarow"
+      },
+      "category": "productivity",
+      "keywords": [
+        "espocrm",
+        "crm",
+        "rest-api",
+        "mcp",
+        "self-hosted",
+        "teams",
+        "custom-entities"
+      ],
+      "homepage": "https://github.com/milojarow/espocrm-skills",
+      "repository": "https://github.com/milojarow/espocrm-skills",
+      "license": "MIT"
+    }
+  ]
+}

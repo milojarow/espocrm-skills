@@ -1,0 +1,8 @@
+{
+    "_warning": "Native entities (Lead, Account, Contact, Opportunity) replace filterList wholesale, NOT merge. Native entries (actual, converted) must be re-listed here or they disappear from the UI.",
+    "filterList": [
+        {"name": "actual"},
+        {"name": "converted", "style": "success"},
+        {"name": "inProcess", "style": "info"}
+    ]
+}

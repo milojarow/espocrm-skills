@@ -1,0 +1,15 @@
+{
+  "id": "espocrm-003",
+  "skills": ["espocrm"],
+  "query": "Creating a Contact keeps failing with '400 validationFailure phoneNumber valid'. What phone format does EspoCRM expect?",
+  "expected_behavior": [
+    "Activate the espocrm skill",
+    "Explain the instance has phoneNumberInternational=true, so phone numbers require a +<country code> prefix",
+    "Show a correct example such as +52 555 123 4567 (spaces are accepted; the backend normalizes them)",
+    "If going through the MCP, note the specialized tool's Zod regex rejects + and spaces — fall back to the generic create_entity / update_entity tool",
+    "Reference common-errors.md and api-endpoints.md (phone number format)"
+  ],
+  "expected_content": ["phoneNumberInternational", "country code", "+", "validationFailure", "create_entity"],
+  "priority": "medium",
+  "notes": "Keep the example generic; the rule is the +country prefix, not a specific number."
+}

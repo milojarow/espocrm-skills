@@ -1,0 +1,16 @@
+{
+  "id": "espocrm-005",
+  "skills": ["espocrm"],
+  "query": "I want a Records dashlet on my dashboard to show only Active CSubscriptions, but putting a where clause / searchData.advanced in the dashlet options does nothing. How do I filter it?",
+  "expected_behavior": [
+    "Activate the espocrm skill",
+    "Explain the Records dashlet ignores searchData.advanced and ad-hoc where clauses — its getSearchData() only reads primaryFilter and boolFilterList",
+    "Explain a named primary filter needs three filesystem artifacts in custom/Espo/Custom/ (a PHP Filter class, selectDefs/<Entity>.json, clientDefs/<Entity>.json) plus clear-cache + rebuild — none of it settable via REST",
+    "Point to the ready-made templates in scripts/primary-filter-templates/ and apply.sh",
+    "Note that setting the dashlet's primaryFilter option afterward IS done via REST",
+    "Reference api-endpoints.md (primary filters for the Records dashlet)"
+  ],
+  "expected_content": ["primaryFilter", "primary-filter-templates", "clientDefs", "selectDefs", "rebuild"],
+  "priority": "medium",
+  "notes": "Tests that the skill steers away from the futile ad-hoc where approach toward the PHP/JSON template path."
+}

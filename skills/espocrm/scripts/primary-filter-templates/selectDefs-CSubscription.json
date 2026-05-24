@@ -1,0 +1,5 @@
+{
+    "primaryFilterClassNameMap": {
+        "inDevelopment": "Espo\\Custom\\Classes\\Select\\CSubscription\\PrimaryFilters\\InDevelopment"
+    }
+}

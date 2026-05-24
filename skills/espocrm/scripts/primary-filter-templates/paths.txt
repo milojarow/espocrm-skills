@@ -1,0 +1,24 @@
+# File placement on the espoCRM container filesystem
+# (substitute container name and adapt entity/filter names)
+#
+# All paths relative to the container's /var/www/html/
+
+# CSubscription example
+custom/Espo/Custom/Classes/Select/CSubscription/PrimaryFilters/InDevelopment.php
+custom/Espo/Custom/Resources/metadata/selectDefs/CSubscription.json
+custom/Espo/Custom/Resources/metadata/clientDefs/CSubscription.json   ← merge with existing if file already exists
+
+# CInvoice example
+custom/Espo/Custom/Classes/Select/CInvoice/PrimaryFilters/Pending.php
+custom/Espo/Custom/Resources/metadata/selectDefs/CInvoice.json
+custom/Espo/Custom/Resources/metadata/clientDefs/CInvoice.json        ← merge
+
+# Lead example (native entity — filterList override is wholesale)
+custom/Espo/Custom/Classes/Select/Lead/PrimaryFilters/InProcess.php
+custom/Espo/Custom/Resources/metadata/selectDefs/Lead.json
+custom/Espo/Custom/Resources/metadata/clientDefs/Lead.json            ← MUST list native filters too
+
+# Pattern for any new filter
+custom/Espo/Custom/Classes/Select/<EntityName>/PrimaryFilters/<FilterName>.php
+custom/Espo/Custom/Resources/metadata/selectDefs/<EntityName>.json
+custom/Espo/Custom/Resources/metadata/clientDefs/<EntityName>.json

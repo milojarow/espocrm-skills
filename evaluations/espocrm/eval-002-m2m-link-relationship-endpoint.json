@@ -1,0 +1,15 @@
+{
+  "id": "espocrm-002",
+  "skills": ["espocrm"],
+  "query": "I created a CInvoice and need to attach 3 CSubscriptions to it. I sent PUT /CInvoice/<id> with subscriptionsIds: [a, b, c] but I get HTTP 403. What's wrong?",
+  "expected_behavior": [
+    "Activate the espocrm skill",
+    "Explain that many-to-many links cannot be set via the parent record's PUT — that returns 403",
+    "Use the relationship endpoint instead: POST /CInvoice/<id>/subscriptions with {\"id\": \"<subscriptionId>\"} per relation, or {\"ids\": [...]} in one call",
+    "Note that manyToOne links DO work via the <linkName>Id field on PUT — only the multi-link case breaks",
+    "Reference api-endpoints.md (setting relationships on records) and common-errors.md (403 cases)"
+  ],
+  "expected_content": ["relationship endpoint", "/subscriptions", "403", "manyToMany", "ids"],
+  "priority": "high",
+  "notes": "The 403 -> relationship-endpoint mapping is a frequent wall."
+}
