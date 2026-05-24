@@ -1,6 +1,6 @@
 ---
 name: espocrm
-description: EspoCRM 9.x patterns for self-hosted instances. Use when interacting with EspoCRM via REST API or an MCP server — creating or updating Accounts/Contacts/Leads/Opportunities and custom entities, modifying schema (custom fields, links, layouts, roles, teams), choosing between api-user X-Api-Key auth and admin Basic Auth + Token, building queries with the where[] syntax, configuring dashlets and primary filters, or troubleshooting validationFailure / 403 / 404 / 405 responses.
+description: EspoCRM 9.x patterns for self-hosted instances. Use when interacting with EspoCRM via REST API or an MCP server — creating or updating Accounts/Contacts/Leads/Opportunities and custom entities, modifying schema (custom fields, links, layouts, roles, teams), authenticating to the API (choosing between api-user X-Api-Key and admin Basic Auth + Token), building queries with the where[] syntax, configuring dashlets and primary filters, or troubleshooting validationFailure / 403 / 404 / 405 responses.
 ---
 
 # EspoCRM — operating manual

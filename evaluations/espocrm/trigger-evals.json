@@ -1,0 +1,20 @@
+[
+  {"query": "Create a Contact in EspoCRM via the REST API.", "should_trigger": true},
+  {"query": "Update an Opportunity's stage through the EspoCRM API.", "should_trigger": true},
+  {"query": "Add a custom field to the Lead entity in EspoCRM.", "should_trigger": true},
+  {"query": "How do I authenticate to EspoCRM's API — api key or admin token?", "should_trigger": true},
+  {"query": "Build a where[] query to filter Accounts by city in EspoCRM.", "should_trigger": true},
+  {"query": "I'm getting a 403 from the EspoCRM API when I try to update a record. What's wrong?", "should_trigger": true},
+  {"query": "Set up a Team in EspoCRM so each company only sees its own data.", "should_trigger": true},
+  {"query": "Create a custom entity in EspoCRM for recurring subscriptions.", "should_trigger": true},
+  {"query": "Configure a primary filter and a dashlet in EspoCRM.", "should_trigger": true},
+  {"query": "The EspoCRM API returns validationFailure when I create a Lead — why?", "should_trigger": true},
+  {"query": "List all Contacts modified this week via the EspoCRM REST API.", "should_trigger": true},
+  {"query": "How do I create a deal in HubSpot?", "should_trigger": false},
+  {"query": "Set up a Salesforce flow to update records.", "should_trigger": false},
+  {"query": "Query my MongoDB collection for active users.", "should_trigger": false},
+  {"query": "Create a Meta Ads campaign for my client.", "should_trigger": false},
+  {"query": "Package my notes into an installable Claude Code skill repo.", "should_trigger": false},
+  {"query": "Build an n8n workflow that posts to a webhook.", "should_trigger": false},
+  {"query": "Write a raw SQL migration to add a column to my Postgres table.", "should_trigger": false}
+]
