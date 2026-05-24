@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "espocrm": {
+      "command": "REPLACE_WITH_YOUR_ESPOCRM_MCP_SERVER_COMMAND",
+      "args": [],
+      "env": {
+        "ESPOCRM_URL": "https://your-espocrm-instance.example.com",
+        "ESPOCRM_API_KEY": "your-api-user-X-Api-Key"
+      }
+    }
+  }
+}

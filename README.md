@@ -41,7 +41,7 @@ Then install:
 
 - A self-hosted EspoCRM 9.x instance
 - An `api`-type user with an API key (daily CRUD) and an `admin` user (schema work)
-- Optionally, an EspoCRM MCP server for tool-based access
+- Optionally, an EspoCRM MCP server for tool-based access (`mcp__espocrm__*` tools) — copy [`.mcp.json.example`](.mcp.json.example) and fill in your instance URL + api-user API key. Prefer a wrapper script that injects the key from a secrets file over hardcoding it.
 
 ## License
 
