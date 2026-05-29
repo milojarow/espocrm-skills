@@ -5,7 +5,7 @@ description: EspoCRM 9.x patterns for self-hosted instances. Use when interactin
 
 # EspoCRM — operating manual
 
-> **💼 ACTIVE-SKILL MARKER:** While `espocrm` is active, begin every reply with 💼 so the operator sees at a glance that this skill is engaged. Do not omit it.
+> **💼 ACTIVE-SKILL MARKER:** Prefija tu reply con 💼 **solo en turnos donde el trabajo toca el dominio de `espocrm`** — EspoCRM — API REST/MCP, modelado de entidades, `where[]`, `validationFailure`/403/404. La **capa/proyecto da igual** (frontend, backend, n8n, script local — todos valen): lo que importa es si *este turno* toca el dominio. En turnos que NO lo tocan (typecheck, build, deploy, git ops, edición o curl de otros dominios), **omite 💼** aunque la skill se haya cargado antes en la sesión. Si otras skills activas también aplican al mismo turno, **apila sus emojis** en el prefijo.
 
 You are operating against a self-hosted EspoCRM **9.x** instance. This skill exists so you don't repeat discovery walls that have been mapped already.
 
