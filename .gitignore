@@ -1,0 +1,6 @@
+# Claude Code operator artifacts (CLAUDE.md is committed in skill repos — the documented exception)
+.claude/memory/
+
+# OS noise
+.DS_Store
+Thumbs.db
