@@ -1,7 +1,7 @@
 {
   "name": "espocrm-skills",
-  "version": "0.2.0",
-  "description": "Expert skills for operating self-hosted EspoCRM 9.x — REST API and MCP patterns, auth flows, customer modeling, and custom entities",
+  "version": "0.2.1",
+  "description": "Operating manual for self-hosted EspoCRM 9.x — REST API and MCP patterns, the two auth flows, customer modeling, custom entities, and the API walls already mapped.",
   "author": {
     "name": "milojarow",
     "url": "https://github.com/milojarow"

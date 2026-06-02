@@ -1,11 +1,11 @@
 ---
 name: espocrm
-description: EspoCRM 9.x patterns for self-hosted instances. Use when interacting with EspoCRM via REST API or an MCP server — creating or updating Accounts/Contacts/Leads/Opportunities and custom entities, modifying schema (custom fields, links, layouts, roles, teams), authenticating to the API (choosing between api-user X-Api-Key and admin Basic Auth + Token), building queries with the where[] syntax, configuring dashlets and primary filters, or troubleshooting validationFailure / 403 / 404 / 405 responses.
+description: EspoCRM 9.x patterns for self-hosted instances. Use when interacting with EspoCRM via REST API or an MCP server — creating or updating Accounts/Contacts/Leads/Opportunities and custom entities, modifying schema (custom fields, links, layouts, roles, teams), authenticating to the API (choosing between api-user X-Api-Key and admin Basic Auth + Token), building queries with the where[] syntax, configuring dashlets and primary filters, or troubleshooting validationFailure / 403 / 404 / 405 responses. Not for other CRMs (HubSpot, Salesforce, Zoho), raw SQL against the EspoCRM database, or generic REST work unrelated to EspoCRM.
 ---
 
 # EspoCRM — operating manual
 
-> **💼 ACTIVE-SKILL MARKER:** Prefija tu reply con 💼 **solo en turnos donde el trabajo toca el dominio de `espocrm`** — EspoCRM — API REST/MCP, modelado de entidades, `where[]`, `validationFailure`/403/404. La **capa/proyecto da igual** (frontend, backend, n8n, script local — todos valen): lo que importa es si *este turno* toca el dominio. En turnos que NO lo tocan (typecheck, build, deploy, git ops, edición o curl de otros dominios), **omite 💼** aunque la skill se haya cargado antes en la sesión. Si otras skills activas también aplican al mismo turno, **apila sus emojis** en el prefijo.
+> **💼 ACTIVE-SKILL MARKER:** Prefix your reply with 💼 **only on turns where the work touches the `espocrm` domain** — EspoCRM via REST API or MCP, entity modeling, `where[]` queries, `validationFailure`/403/404 troubleshooting — regardless of the layer/project (frontend, backend, a local script — all count); what matters is whether *this turn* touches the domain. On turns that do NOT touch it (typecheck, build, deploy, git ops, editing or curl in other domains), **omit 💼** even if the skill loaded earlier in the session. If other active skills also apply to the same turn, **stack their emojis** in the prefix.
 
 You are operating against a self-hosted EspoCRM **9.x** instance. This skill exists so you don't repeat discovery walls that have been mapped already.
 
