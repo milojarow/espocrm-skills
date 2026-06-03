@@ -53,7 +53,7 @@ Key fields:
 
 - `firstName`, `lastName`, `accountName` (string, not a link — when there's no Account record yet)
 - `status` (enum) — `New`, `Assigned`, `In Process`, `Converted`, `Recycled`, `Dead`
-- `source` (enum, REQUIRED) — `Call`, `Email`, `Existing Customer`, `Partner`, `Public Relations`, `Web Site`, `Campaign`, `Other`
+- `source` (enum, **optional** — not required) — `Call`, `Email`, `Existing Customer`, `Partner`, `Public Relations`, `Web Site`, `Campaign`, `Other`. Verified against `entityDefs.Lead.fields.source`: `required` is unset and empty `''` is a valid option. Leave it blank when the inbound channel is unknown instead of guessing a value.
 - `industry`, `website`, `phoneNumber`, `emailAddress`, `description`
 - `assignedUserId`, `teamsIds`
 
