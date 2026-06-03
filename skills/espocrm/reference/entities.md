@@ -57,7 +57,7 @@ Key fields:
 - `industry`, `website`, `phoneNumber`, `emailAddress`, `description`
 - `assignedUserId`, `teamsIds`
 
-When a Lead converts (deal closed), use the lead conversion flow (`mcp__espocrm__convert_lead` or `POST /Lead/<id>/convert`) which creates Account + Contact + optionally Opportunity from the Lead.
+When a Lead converts (deal closed), use the lead conversion flow — the MCP tool `mcp__espocrm__convert_lead`, or replicate its orchestration over standard REST. It is **not** a single endpoint (there is no verified `POST /Lead/<id>/convert`): it creates Account + Contact + optionally Opportunity from the Lead, then flips the Lead's `status` to `Converted`. Verified call sequence, field mapping, and gotchas: [api-endpoints.md](api-endpoints.md) → "Lead conversion".
 
 ### Opportunity
 

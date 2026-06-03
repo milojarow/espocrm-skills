@@ -41,6 +41,43 @@ GET <base>/CSubscription?where[0][type]=linkedWith&where[0][attribute]=account&w
 
 Common `type` values: `equals`, `notEquals`, `contains`, `startsWith`, `endsWith`, `linkedWith`, `notLinkedWith`, `isNull`, `isNotNull`, `between`, `today`, `currentMonth`.
 
+## Lead conversion
+
+There is **no single `convert` endpoint**. Lead conversion is an *orchestration* of the standard CRUD calls above. (An earlier version of this skill claimed `POST /Lead/<id>/convert` — that path is unverified and is not what any working tool uses. Don't rely on it.) Both the EspoCRM UI and the EspoMCP `convert_lead` tool do the same thing: create the target records, then flip the Lead's status to `Converted`.
+
+### Via MCP (preferred)
+
+`mcp__espocrm__convert_lead` — params:
+
+| Param | Default | Notes |
+|---|---|---|
+| `leadId` | (required) | The Lead to convert |
+| `createAccount` | `true` | Fires **only if the Lead has `accountName` set** — no accountName → no Account, silently |
+| `createContact` | `true` | Creates a Contact from the Lead's person fields |
+| `createOpportunity` | `false` | Fires **only if** an Account was created **and** `opportunityName` is provided |
+| `opportunityName` | — | Required for the Opportunity to be created |
+| `opportunityAmount` | — | Optional amount |
+
+### The orchestration (verified call sequence)
+
+What `convert_lead` actually does — replicate this if you go through raw REST instead of the MCP:
+
+1. `GET <base>/Lead/<id>` — read the Lead.
+2. **Account** (if `createAccount` and `lead.accountName`): `POST <base>/Account`
+   `{ "name": lead.accountName, "website": ..., "industry": ..., "assignedUserId": ... }` → keep `account.id`.
+3. **Contact** (if `createContact`): `POST <base>/Contact`
+   `{ "firstName", "lastName", "emailAddress", "phoneNumber", "accountId": <from step 2>, "assignedUserId", "description" }`.
+4. **Opportunity** (if `createOpportunity` and step 2 produced an account and `opportunityName`): `POST <base>/Opportunity`
+   `{ "name": opportunityName, "accountId", "stage": "Prospecting", "amount": opportunityAmount, "closeDate": <today+30d>, "assignedUserId" }`.
+5. `PUT <base>/Lead/<id>` with `{ "status": "Converted" }`.
+
+### Gotchas
+
+- **No `accountName` on the Lead → no Account, and therefore no Opportunity.** Step 2 is gated on `lead.accountName`; step 4 is gated on an account having been created. A Lead captured without an account name converts to a bare Contact only, even if you requested an Opportunity. Set `accountName` on the Lead first if you want the full chain.
+- **The Contact ends up account-less** in that same case — step 3 runs with `accountId` undefined.
+- **`stage` is hardcoded `Prospecting`** and `closeDate` defaults to **today + 30 days**. Fix afterward with `PUT <base>/Opportunity/<id>` if you need real values.
+- **The Lead's native conversion links are NOT populated.** The tool only flips `status` to `Converted`; it does not link the new Account/Contact/Opportunity back onto the Lead. The new records exist and are cross-linked (Contact → Account), but the *Lead* won't show them in its native conversion panel. Set those links explicitly after conversion if you need them.
+
 ## Custom Entity management (admin auth required)
 
 ### Create entity

@@ -55,6 +55,7 @@ Detail: [reference/customer-modeling.md](reference/customer-modeling.md) · [ref
 - **Schema rebuild after changes**: `POST /api/v1/Admin/rebuild`.
 - **Standard records**: `GET/POST/PUT/PATCH/DELETE /api/v1/<EntityType>[/<id>]`. PATCH and PUT both work for updates.
 - **Many-to-many link assignment**: NOT via PUT on the parent (gives 403). Use the relationship endpoint: `POST /api/v1/<Entity>/<id>/<linkName>` with body `{"id":"<related_id>"}` per relation.
+- **Lead conversion**: there is NO single `convert` endpoint. It's an orchestration — create Account/Contact/Opportunity from the Lead, then `PUT /Lead/<id>` with `status: Converted`. Use `mcp__espocrm__convert_lead` or replicate the sequence. Full verified flow: [reference/api-endpoints.md](reference/api-endpoints.md) → "Lead conversion".
 
 Detail with payloads and response shapes: [reference/api-endpoints.md](reference/api-endpoints.md).
 
