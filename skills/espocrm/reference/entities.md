@@ -90,12 +90,12 @@ EspoCRM has a `type` discriminator on User:
 - `regular` — normal user, password auth, scoped by Roles + Teams
 - `api` — service account, X-Api-Key auth (and HMAC), no UI login
 - `portal` — customer portal user
-- `super-admin` — a **strictly higher tier than `admin`, NOT equivalent**. A regular `admin` has full access to records, schema, and settings, but EspoCRM's code reserves several powers to super-admin (verified in source):
-  - **A regular admin cannot see, edit, or delete super-admin users.** `Classes/Acl/User/AccessChecker` denies read/edit/delete whenever `$entity->isSuperAdmin() && !$user->isSuperAdmin()`. Super-admins are invisible and untouchable to ordinary admins.
-  - **Only a super-admin can grant super-admin.** `Classes/Record/User/InputFilter` strips the `isSuperAdmin` field from the input payload for non-super-admins (`$data->clear('isSuperAdmin')`), so a regular admin can't create or promote one.
-  - **Super-admin bypasses user-count limits.** `Classes/RecordHooks/User/BeforeUpdate` lets it activate users / change user types past the configured internal/portal/API user limits; a regular admin is blocked when a limit is reached.
-  - **Restricted mode** locks a reserved param set (`Tools/App/SettingsService::getSuperAdminParamList`) and parts of the admin panel to super-admin only.
-  Practical upshot: a regular admin can manage regular users and even other regular admins, but **only a super-admin can touch super-admin accounts or grant/revoke the super-admin flag**. The instance's primary/install admin is typically the super-admin — verify on the live instance rather than assuming.
+- `super-admin` — a distinct, **more powerful `type`** than `admin` — but one you'll rarely see instantiated. The full `User.type` enum is `regular, admin, portal, system, super-admin, api` (verified against `entityDefs.User.fields.type`; there is no separate `isSuperAdmin` field — it's not in the metadata and `select=isSuperAdmin` returns null even under admin auth). The code reserves real powers to `super-admin` that a plain `admin` lacks (verified in source):
+  - A regular admin **cannot see, edit, or delete super-admin users** — `Classes/Acl/User/AccessChecker` denies read/edit/delete when the target `isSuperAdmin()` and the actor isn't.
+  - A regular admin **cannot grant the super-admin type** — `Classes/Record/User/InputFilter` strips it from the input payload for non-super-admins.
+  - Super-admin **bypasses the user-count limits** that block a regular admin — `Classes/RecordHooks/User/BeforeUpdate`.
+  - In **restricted mode**, a reserved param set + parts of the admin panel become super-admin-only — `Tools/App/SettingsService::getSuperAdminParamList`.
+  **In practice it's almost never present.** A normal install runs *every* administrator as plain `admin` — verified in the field: instances where all human users are `type=admin` and zero `super-admin` users exist. `admin` already has full unrestricted access to records, schema, and settings; a `super-admin` user is usually created only via CLI/config, not the UI. So day to day you operate as `admin` and the distinction never bites — until a `super-admin` user actually exists, at which point a plain `admin` can't touch it or grant that type. Don't assume any admin is super-admin: `type` reads `admin` for ordinary administrators.
 - `system` — internal framework user type, not a human login
 
 ### Team
