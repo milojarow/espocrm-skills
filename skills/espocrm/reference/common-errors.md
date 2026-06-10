@@ -277,6 +277,33 @@ To create a User, POST to `/User` (collection). To update a User, PUT/PATCH to `
 
 This is the standard REST distinction; the 405 is correct.
 
+## 500 Internal Server Error — common cases
+
+### `PUT /Admin/fieldManager/<scope>/<field>` without `type` in the body
+
+Editing an **existing** field (e.g. changing an enum's `options`) by PUT-ing a partial body that omits `"type"` returns **500**, not a clean 4xx:
+
+```
+FAILS (500):  {"options":[...],"default":"C","required":true,"audited":true}
+WORKS (200):  {"type":"enum","options":[...],"default":"C","required":true,"audited":true,"isCustom":true}
+```
+
+The fieldManager PUT is **not a partial patch** — it rebuilds the field def from the body, and a def without `type` is invalid, which surfaces as a 500. Always include `type` (and `isCustom: true` for custom fields).
+
+**Safe edit-options pattern** — don't hand-build a partial body. Read the full current def, mutate the piece you care about, send the whole thing back:
+
+```bash
+# 1. Read the complete field def
+GET /Metadata?key=entityDefs.<Scope>.fields.<field>
+# 2. Modify the `options` array (and `style`/`default` if needed) in that object
+# 3. PUT the COMPLETE def back — type, options, isCustom, everything
+PUT /Admin/fieldManager/<Scope>/<field>  '<full def with edited options>'
+# 4. Rebuild
+POST /Admin/rebuild
+```
+
+**Sequencing gotcha — rebuild is not retroactive.** If a PUT fails and `Admin/rebuild` already ran earlier in the same batch, you must re-run the rebuild *after* the successful PUT. The rebuild only registers schema state as it exists at the moment it runs; it does not pick up a later successful write.
+
 ## 502 Bad Gateway from Caddy
 
 ```

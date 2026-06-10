@@ -137,7 +137,11 @@ PUT <base>/Admin/fieldManager/<scope>/<fieldName>
 Content-Type: application/json
 ```
 
-The path itself names the field; the body defines its shape:
+The path itself names the field; the body defines its shape.
+
+**The PUT is a full replace, not a partial patch.** When editing an existing field (e.g. changing an enum's `options`), the body must carry the **complete** def — `type` included (and `isCustom: true` for custom fields). A partial body that omits `type` returns **500**. Safe pattern: `GET /Metadata?key=entityDefs.<Scope>.fields.<field>`, mutate the `options` array, PUT the whole object back, then `POST /Admin/rebuild`. See the 500 case in [common-errors.md](common-errors.md).
+
+The body shapes below are full field defs:
 
 **Enum:**
 ```json
