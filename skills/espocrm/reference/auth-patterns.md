@@ -15,6 +15,8 @@ X-Api-Key: <api-key-value>
 
 **Suggested storage**: an env file outside the repo (e.g. `~/.secrets/environment.d/<name>.conf`) loaded by your shell or systemd user environment. The MCP server wrapper script reads it from env via `exec` inheritance.
 
+**Creation gotcha**: on `POST /User`, set `"authMethod": "ApiKey"` (case-sensitive — `"apiKey"` 400s). Omitting it lets the user create successfully and even returns an `apiKey`, but that key then 401s on every call; fix with `PUT /User/<id> {"authMethod":"ApiKey"}` (no key regeneration). Details: [common-errors.md](common-errors.md) → `authMethod valid`.
+
 **Test it works:**
 ```bash
 curl -sS -H "X-Api-Key: $ESPOCRM_API_KEY" "$ESPOCRM_URL/api/v1/App/user" | head -c 200
@@ -32,6 +34,15 @@ If it returns 401, the api user was deleted or the key was rotated. Open admin p
 - Read or write the `Role` scope
 
 For any of those, switch to Path 2.
+
+### Pattern — ACL-scoped read-only mirror key
+
+For a public-facing read-only surface (e.g. a dashboard or widget that queries the CRM), don't reuse the full-CRUD api user. Mint a **dedicated api user whose role physically can't do harm**, so security doesn't depend on the consumer app getting its `where[]` filter right:
+
+- **Role**: `read=team`, and `create=no` / `edit=no` / `delete=no` on every scope. With write disabled, any `POST`/`PUT`/`DELETE` returns 403 — the key can only read.
+- **Membership**: put the user in **exactly one team**. With `read=team`, the key can only see records belonging to that team. Records with no team are invisible to it too.
+
+This is defense in depth: even if the consumer app's query filter is wrong or bypassed, the key still cannot read other tenants' records or mutate anything. Round-trip to verify: tag a record with the team → it becomes visible to the key; untag it → it disappears.
 
 ## Path 2 — `Espo-Authorization: Basic` (admin user, schema work)
 

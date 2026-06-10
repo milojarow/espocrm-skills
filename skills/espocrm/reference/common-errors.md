@@ -61,6 +61,25 @@ The field expects a specific format and the value doesn't match. Common cases:
 - A link field (e.g. `invoiceId`) given an empty string `""` because of an upstream variable expansion failure. Always check that ID variables are populated before constructing payloads.
 - A datetime given in a format the regex doesn't accept. EspoCRM dates accept `YYYY-MM-DD` and datetimes accept both `YYYY-MM-DD HH:mm:ss` (space) and `YYYY-MM-DDTHH:mm:ss` (ISO). The MCP Zod validator only accepts the `T` form.
 
+### `authMethod` `valid` (creating an api user)
+
+`authMethod` on `POST /User` is a **case-sensitive enum**. The value for API-key auth is `"ApiKey"` (capital A, capital K).
+
+```
+Wrong:  "authMethod": "apiKey"   → 400 validationFailure {field: authMethod, type: valid}
+Right:  "authMethod": "ApiKey"
+```
+
+**Silent trap — omitting `authMethod` entirely.** Creating an api user *without* `authMethod` succeeds (HTTP 200, the record is created and the response carries an `apiKey`), but every subsequent request with that key returns **401**. The key is real, just not wired to an auth method. Fix without regenerating the key:
+
+```
+PUT /User/<id>  {"authMethod": "ApiKey"}
+```
+
+The same key starts working immediately — no key rotation needed.
+
+**Safe create flow:** `POST /User` (with `"authMethod":"ApiKey"`) → if you omitted it, `PUT /User/<id> {"authMethod":"ApiKey"}` → use the `apiKey` returned by the create response.
+
 ## 403 Forbidden — common cases
 
 ### PUT with a `<linkName>Ids` array on a manyToMany relationship
@@ -83,6 +102,18 @@ done
 Or pass `{"ids": ["a","b","c"]}` in a single POST to the relationship endpoint.
 
 For manyToOne, the simple `<linkName>Id` field DOES work in PUT — that's only the multi-link case that breaks.
+
+#### Exception — the special `teams` link is the OPPOSITE: PUT the field, not the relationship endpoint
+
+For `teams`, the rule above inverts. Assigning teams to a record via the relationship endpoint **403s** for an api user, while PUT-ing the `teamsIds` field on the record **works**:
+
+```
+POST /Lead/<id>/teams  {"id":"<teamId>"}     → 403   (for an api user with Lead edit=all but Team edit=no)
+PUT  /Lead/<id>        {"teamsIds":["<teamId>"]}  → 200
+PUT  /Lead/<id>        {"teamsIds":[]}            → 200  (unlinks cleanly)
+```
+
+**Why the inversion.** `teams` is a special link exposed as an editable link-multiple **field** on the record, gated by the role's `assignmentPermission` (which was `all` here). The generic relationship endpoint, by contrast, appears to check `edit` on the **foreign** entity too — so an api user without Team edit is refused. The deciding factor: if the link is an editable field on the record and the user can edit the foreign scope as needed, PUT the `<linkName>Ids` field; otherwise use the relationship endpoint. Entity↔entity custom links (e.g. CSubscription↔CInvoice) follow the relationship-endpoint rule above; `teams` is the notable exception.
 
 ### Admin operation via api user
 
