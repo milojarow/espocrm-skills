@@ -45,6 +45,8 @@ These are defaults that have proven sound across multiple use cases. Re-litigate
 
 Detail: [reference/customer-modeling.md](reference/customer-modeling.md) · [reference/entities.md](reference/entities.md).
 
+- **Assignment notifications**: the native assignment email is generic and only fires on assignment *change* (an upsert/dedup update stays silent). When the business wants branded, re-contact-aware notifications, the backend sends its own and that one entity is dropped from the native list. See [reference/notifications.md](reference/notifications.md).
+
 ## The endpoints that work (the rest will give 404/405)
 
 - **Custom entity create/remove**: `POST /api/v1/EntityManager/action/createEntity` (NOT `/Admin/entityManager/createEntity` which is 404). Names get a `C` prefix automatically (Subscription → CSubscription).
@@ -88,7 +90,8 @@ reference/
 ├── auth-patterns.md             two auth flows in detail
 ├── entities.md                  schemas: native + custom patterns
 ├── customer-modeling.md         Account vs Contact, multi-business, Teams vs custom enum
-└── common-errors.md             validationFailure cases, 403/404/405/500 patterns
+├── common-errors.md             validationFailure cases, 403/404/405/500 patterns
+└── notifications.md             native assignment email vs a custom backend email
 scripts/
 ├── create-custom-entity-checklist.md   12-step end-to-end create flow
 └── primary-filter-templates/           PHP + JSON templates for filterable dashlets
