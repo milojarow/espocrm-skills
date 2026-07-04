@@ -44,6 +44,34 @@ For a public-facing read-only surface (e.g. a dashboard or widget that queries t
 
 This is defense in depth: even if the consumer app's query filter is wrong or bypassed, the key still cannot read other tenants' records or mutate anything. Round-trip to verify: tag a record with the team → it becomes visible to the key; untag it → it disappears.
 
+### Runbook — provision a scoped api-user for server-side writes
+
+When a new host/service needs to **create/edit records** (never via admin — see the hard rule in SKILL.md), provision it its own scoped api-user entirely over the API, no WUI:
+
+```
+# 1. Scoped role (admin auth). assignmentPermission:"all" is REQUIRED if the
+#    api-user will set assignedUserId on records — without it, 403 on assign.
+POST /Role
+{"name":"<Host> Ops — <domain>","assignmentPermission":"all",
+ "data":{"<Entity1>":{"create":"yes","read":"all","edit":"all","delete":"no"},
+         "<Entity2>":{...},
+         "Account":{"create":"no","read":"all","edit":"no","delete":"no"},
+         "User":{"read":"all"},"Team":{"read":"all"}}}
+
+# 2. Api user bound to the role. authMethod:"ApiKey" EXPLICIT — if left null, 401 forever.
+POST /User
+{"userName":"<host>-ops","lastName":"<Host> Ops","type":"api",
+ "authMethod":"ApiKey","isActive":true,"rolesIds":["<roleId>"]}
+
+# 3. Retrieve the key WITHOUT regenerating it: GET /User/<id> as admin → apiKey field.
+#    Store it in the host secret store (600 root), never in the repo.
+```
+
+Notes:
+- `delete:"no"` is deliberate: a per-machine ops key (billing/registration/etc.) doesn't need to delete; deletes stay with admin under human confirmation.
+- Records it creates are attributed to the api-user (`createdByName: <host>-ops`) — consistent attribution by origin (one api-user per machine/pipeline), which is the whole point of the never-via-admin rule.
+- `User`/`Team` `read:all` in the role is what lets the key resolve `assignedUserId`/`teamsIds` at create time.
+
 ## Path 2 — `Espo-Authorization: Basic` (admin user, schema work)
 
 **Suitable user type**: `admin`. Authenticates with username + password, exchanges for an AccessToken on first call, then uses the token on subsequent calls.
