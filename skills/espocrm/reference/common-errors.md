@@ -80,6 +80,31 @@ The same key starts working immediately — no key rotation needed.
 
 **Safe create flow:** `POST /User` (with `"authMethod":"ApiKey"`) → if you omitted it, `PUT /User/<id> {"authMethod":"ApiKey"}` → use the `apiKey` returned by the create response.
 
+### `<customField>` `maxLength` — custom varchar too long
+
+Custom `varchar` fields are created with **`maxLength: 100` by default**. A value longer than that does **not** truncate — it **rejects the entire POST/PUT** with `validationFailure`. When a create fails and the payload carries free-text fields (a note, a reference, a label), check the field's limit against metadata *before* blindly retrying:
+
+```
+GET /Metadata?key=entityDefs.<Entity>.fields.<field>
+→ {"type":"varchar","maxLength":100}
+```
+
+Fix: raise the limit on the field (admin: `PUT /Admin/fieldManager/<Entity>/<field>` with a larger `maxLength` in the full def) or shorten the value.
+
+### Diagnosing a failed 4xx — don't let `jq` hide the error
+
+An anti-pattern that turns a rejected create into a phantom "empty record": piping the create response straight into `jq '{id, name, ...}'`. If the response was an **error** body rather than a record, `jq` prints every requested field as `null` and the real `messageTranslation` is lost — it looks like "it created a blank record" when nothing was created at all.
+
+Correct way to debug a 4xx — keep headers *and* body:
+
+```
+curl -sS -D - -o body.json ...
+```
+
+then read the **HTTP status line**, the `x-status-reason` header, and the raw `body.json`. Confirm whether the record actually exists (`GET` with a filter / total count) before retrying, so you don't create a duplicate.
+
+**Isolate by subtraction:** re-send the same payload *without* the suspect field. If it now succeeds, that field was the cause — confirmed in a single retry.
+
 ## 403 Forbidden — common cases
 
 ### PUT with a `<linkName>Ids` array on a manyToMany relationship
