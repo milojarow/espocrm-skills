@@ -16,6 +16,11 @@ When the business wants branded, context-rich notifications, have the backend th
    Fully reversible with another PUT.
 4. **Caveat of step 3:** records of that entity created **by hand in the WUI** and assigned to another user will no longer send a native email either (the in-app bell still fires — it's a separate list). Surface this tradeoff to the operator before flipping it.
 
+### Two Settings gotchas for that list
+
+- **Use `PUT`, not `PATCH`.** `PATCH /api/v1/Settings` returns **404**; the Settings endpoint only accepts `PUT`. ([api-endpoints.md](api-endpoints.md) notes PATCH works for entity *records* — that does NOT apply to `/Settings`, and the contrast is a debugging trap.)
+- **The default `assignmentEmailNotificationsEntityList` is `Opportunity`/`Task`/`Case` — Lead and Meeting are NOT in it.** So assignment emails for Lead/Meeting **never fire** until you ADD those types to the list (PUT the full, extended list). Misleading symptom: "I assigned a Lead and no email arrived" looks like a mailer bug — it's the default config. Note the direction here is the opposite of step 3's REMOVE: you PUT a list *with more* entity types than the default.
+
 ## Per-user opt-out (`Preferences.assignmentEmailNotificationsIgnoreEntityTypeList`)
 
 The per-user counterpart to the global Settings list (step 3 above). Each user's `Preferences` accepts `assignmentEmailNotificationsIgnoreEntityTypeList` — a list of entity types whose assignment emails **that user** won't receive, without affecting anyone else.

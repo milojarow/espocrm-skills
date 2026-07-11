@@ -27,6 +27,8 @@ See [auth-patterns.md](auth-patterns.md) for the full flow.
 
 For `<Entity>` use the technical name: `Account`, `Contact`, `Lead`, `Opportunity`, `Meeting`, `Call`, `Task`, `Case`, `User`, `Team`, `Role`, `CSubscription`, `CInvoice`, `CPayment`.
 
+> **`/Settings` is not a record endpoint** — `PATCH /api/v1/Settings` returns **404**; global settings only accept `PUT`. The `PATCH`-works rule above applies to entity *records*, not to `/Settings`.
+
 ## Querying with `where[]`
 
 The query param `where[]` lets you filter. Each clause is an object with `type`, `attribute`, and `value` (or `value[]` for arrays). URL-encoded.
