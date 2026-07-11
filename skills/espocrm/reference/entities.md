@@ -79,6 +79,7 @@ Activity records. Each has its own native fields. Common requirements:
 
 - `assignedUserId` is **required** on Meeting (likely on most). If absent: `validationFailure assignedUser required`.
 - Meetings: `dateStart`, `dateEnd` (datetime), `status` (`Planned`/`Held`/`Not Held`), `usersIds`, `contactsIds`, `leadsIds`.
+  - **No `Canceled` status.** The stock enum is exactly `Planned` / `Held` / `Not Held` — there is no "Canceled" value. Auditable cancel-without-destroy workaround: `PUT` status → `"Not Held"` + a marker prefix in `name` (e.g. `[CANCELLED] Call with…`), paired with a **role that DENIES delete** to the bot's api user — so the record survives as an audit trail and the bot can't destroy history even if instructed. The triple (readable status + name marker + delete denied) makes the cancellation reversible and auditable without customizing the enum.
 - Tasks: `parentType` + `parentId` to link to whatever entity is responsible (Lead, Account, Contact, Opportunity).
 - Cases: `accountId`, `contactId`, `priority`, `status`, `type`.
 
