@@ -1,6 +1,6 @@
 {
   "name": "espocrm-skills",
-  "version": "0.2.14",
+  "version": "0.2.15",
   "description": "Operating manual for self-hosted EspoCRM 9.x — REST API and MCP patterns, the two auth flows, customer modeling, custom entities, and the API walls already mapped.",
   "author": {
     "name": "milojarow",
