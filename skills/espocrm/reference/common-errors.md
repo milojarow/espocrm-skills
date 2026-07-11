@@ -244,6 +244,16 @@ Apply to every custom entity at creation time. The list should include `name`, a
 
 To edit the api user's profile (e.g. assign teams, change name, rotate api key), use the admin path.
 
+### `cannotRelateForbidden` on create/assign with `assignedUserId`
+
+Exact signature → cause (the underlying requirement is already documented in [auth-patterns.md](auth-patterns.md); this is just the string to recognize it on the fly):
+
+```
+403  body: cannotRelateForbidden {foreignEntityType: "User", action: "read"}
+```
+
+on creating/assigning a record with `assignedUserId` set means the api user's role has **no User read access**. It is NOT a problem with the record or the team. Fix: the role needs `User: {"read":"all"}` + `assignmentPermission: "all"` (the exact role shape is in auth-patterns.md, Path 1).
+
 ## 404 Not Found — common cases
 
 ### `Record <id> not found`
