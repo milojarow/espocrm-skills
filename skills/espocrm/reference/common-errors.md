@@ -151,6 +151,41 @@ Trying to do schema/admin work with `X-Api-Key` returns 403:
 
 Switch to the admin path (`<your-admin-helper>`).
 
+### 403 with an EMPTY body → the role lacks the scope (native entities too, not just custom)
+
+The role-scope 403 is **not** limited to custom entities. A native entity (`Account`, `Contact`, `Lead`, `Opportunity`…) that the role holds read-only blocks writes exactly the same way — and it surprises more, because a "normal" api user is assumed to be able to create Accounts.
+
+```
+POST /api/v1/Account   →  HTTP 403, body EMPTY
+```
+
+No `messageTranslation`, no `label`, nothing. Two consequences worth knowing before you debug the wrong layer:
+
+- A script that parses the response as JSON dies with `Expecting value: line 1 column 1` — a JSON error masking an ACL error.
+- If the (never-assigned) id is used in a following step, the cascade fails with errors that don't point at the cause — e.g. `validationFailure … {field: account, type: pattern}`, because the link field got an empty string. See `<field>` `pattern` above.
+
+**One-command diagnosis** — an api user can read its own effective permissions:
+
+```bash
+curl -s -H "X-Api-Key: $KEY" "$URL/api/v1/App/user" \
+ | python3 -c "import json,sys; d=json.load(sys.stdin); t=d['acl']['table']; \
+   print({k:t.get(k) for k in ('Account','Contact','Lead','Opportunity')})"
+```
+
+Each scope returns `{'create':'no','read':'all','edit':'no','delete':'no'}` — and **`None` when the role has no scope at all** for that entity. The same response carries `user.rolesIds` / `rolesNames`, which names the exact role to edit.
+
+**The fix is the same hard rule: widen the role with admin auth, then create the record with the api key.** Never create the record as admin, even when it's one call away — `createdBy` lands on admin, the record misses the operational Streams, and triggers that key off `createdBy` never fire.
+
+```
+GET  /api/v1/Role/<roleId>          # -> .data = { "Account": {...}, "CInvoice": {...} }
+PUT  /api/v1/Role/<roleId>  {"data": { ...previous..., "Account": {"create":"yes","read":"all","edit":"all","delete":"no"} }}
+```
+
+- **Merge, don't replace.** GET the role and modify only the keys you need. A PUT with a partial `data` drops every scope you didn't send.
+- **Set `delete: "no"` explicitly** unless deletion is actually required — least privilege, and it keeps a service key from erasing records.
+- **Clear cache afterwards** (`php clear_cache.php` in the container) and **re-check with the `App/user` call above** that the permission is live, before retrying the POST.
+- **A 403 can be a deliberate design boundary, not a bug.** An api user may be scoped to one function on purpose. Confirm with the instance owner before widening a role rather than assuming the permission was missing.
+
 ### Custom entity created AFTER the role exists → api user can't edit/create/delete on it
 
 When you create a new custom entity via `EntityManager/action/createEntity`, **the existing roles do NOT auto-update** to include scopes for the new entity. The api user can typically still LIST/READ from frontend defaults, but `POST`/`PUT`/`PATCH`/`DELETE` on records of that entity return **403**.
