@@ -91,6 +91,33 @@ GET /Metadata?key=entityDefs.<Entity>.fields.<field>
 
 Fix: raise the limit on the field (admin: `PUT /Admin/fieldManager/<Entity>/<field>` with a larger `maxLength` in the full def) or shorten the value.
 
+The reject is an **HTTP 400** and the body does name both the field and the failure type — so it's diagnosable, but only if you read the raw body. Clients that collapse 4xx into "Invalid request data" hide it (see the `jq` anti-pattern below).
+
+```json
+{"messageTranslation":{"label":"validationFailure","scope":null,
+ "data":{"field":"reference","type":"maxLength"}}}
+```
+
+**Where it bites in practice:** `reference`, `externalId`, `code`, `invoiceNumber`-style fields on billing/payment entities. They're tempting to use as a logbook ("paid via X in currency Y, sender Z, to account W, memo …") precisely because they're the ones visible in list view.
+
+**Modeling rule: a `varchar` is a short identifier, not a note.** Long detail belongs in `description` (type `text`, which has no such limit).
+
+```jsonc
+{
+  "reference":   "Transfer ref ABC-123 -> account <masked-acct>",   // short, identifies
+  "description": "Full memo, timing, and the mirrored ledger entry" // the whole context
+}
+```
+
+**Decide this when you create the field, not when the first real record fails.** If a longer varchar is genuinely needed, declare it explicitly:
+
+```
+PUT /api/v1/Admin/fieldManager/<scope>/<fieldName>
+{"type": "varchar", "maxLength": 255}
+```
+
+then `POST /api/v1/Admin/rebuild`. This belongs in the field-definition step of [the custom-entity checklist](../scripts/create-custom-entity-checklist.md).
+
 ### Diagnosing a failed 4xx — don't let `jq` hide the error
 
 An anti-pattern that turns a rejected create into a phantom "empty record": piping the create response straight into `jq '{id, name, ...}'`. If the response was an **error** body rather than a record, `jq` prints every requested field as `null` and the real `messageTranslation` is lost — it looks like "it created a blank record" when nothing was created at all.

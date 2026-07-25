@@ -21,6 +21,8 @@ Note: name gets `C` prefix automatically (`YourEntity` → `CYourEntity`).
 
 PUT (not POST) for creation. Idempotent.
 
+**Set `maxLength` explicitly on every `varchar` you expect to hold more than a short code.** The default is `maxLength: 100`, and an over-long value doesn't truncate — it rejects the whole record with `validationFailure` (see `reference/common-errors.md`). Decide the limit here; discovering it when the first real record fails costs a field edit plus another rebuild. Long free text belongs in a `text` field (`description`), not a wide varchar.
+
 ## 3. Define links to other entities
 
 ```bash
