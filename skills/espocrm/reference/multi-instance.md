@@ -71,3 +71,41 @@ Recreating custom entities, fields, links, layouts and roles by hand is where th
 Schema, layouts, roles, custom fields and users all survive untouched. Credentials survive too: see the hash-portability note in [forensics.md](forensics.md).
 
 For backing up before any of this, see [backup-and-restore.md](backup-and-restore.md).
+
+## After the split: the default instance must be explicit
+
+**The failure mode.** `ESPOCRM_URL` — consumed by the admin helper, by scripts, and by the MCP server — points at *one* instance. After a split, the one left as default may be the one that no longer holds your data. Then:
+
+```
+GET /Account?maxSize=1   →  200 OK,  total: 0
+```
+
+**A 200 with `total: 0` is indistinguishable from "there are no customers".** No error, no 403, nothing that reveals you are reading the wrong CRM. A fresh agent session can report "the CRM has no customers" with total confidence while talking to a different database.
+
+Worse, the **same API key works on both instances** — users are cloned along with the database, so credentials give away nothing:
+
+```
+same key → instance A:  total 5
+same key → instance B:  total 0
+```
+
+### The rule
+
+**Before drawing any conclusion about what exists or is missing in the CRM, confirm which instance you are talking to.** It costs one request:
+
+```
+GET /api/v1/Settings   →  siteUrl field
+```
+
+If `siteUrl` is not the instance you assumed, everything you just read does not apply. And when a count comes back zero where you expected data, **the first hypothesis is the wrong instance, not data loss.**
+
+### Making it survive fresh sessions
+
+1. **The default points at the day-to-day instance**, not the historical one. Documentation alone does not prevent the mistake — the variable is what decides.
+2. **Every other instance is explicit opt-in** via its own variable (`ESPOCRM_URL_<WHATEVER>`), prefixed onto the command:
+   `ESPOCRM_URL=$ESPOCRM_URL_OTHER <helper> GET /Account`
+3. **Every destructive script opens with a `siteUrl` guard** and aborts if it doesn't match the expected target. Without it, a purge script aimed at the wrong instance deletes the wrong data.
+4. **Watch the token cache.** A helper that caches its token at a fixed path shares it across instances; tokens are per-instance, so alternating forces a re-login (401 → retry). It works, but it isn't free — cache per host instead.
+5. **The MCP server inherits the variable from the login environment.** Changing it in a running shell does not reconfigure an already-running MCP: it takes effect next session. Until then the MCP keeps talking to the old instance while the shell talks to the new one — a silent divergence between two tools inside the same session.
+
+**Credentials after a split**: password hashes, API keys, roles and record IDs are **identical** on both instances when one was cloned from the other. Convenient (everyone can sign in to both) and dangerous (nothing in the credential tells you which one you reached). The only reliable discriminator is `siteUrl`.
