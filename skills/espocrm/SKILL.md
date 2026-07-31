@@ -47,6 +47,7 @@ Detail: [reference/customer-modeling.md](reference/customer-modeling.md) · [ref
 
 - **Assignment notifications**: the native assignment email is generic and only fires on assignment *change* (an upsert/dedup update stays silent). When the business wants branded, re-contact-aware notifications, the backend sends its own and that one entity is dropped from the native list. See [reference/notifications.md](reference/notifications.md).
 - **Forensics** ("who/what created or deleted this record, and when?"): cross-reference `AuthLogRecord` (who authenticated) with the container access log (method/path/User-Agent), anchoring the container TZ first. See [reference/forensics.md](reference/forensics.md).
+- **Cloning an instance** (splitting one CRM into two): the database connection lives in `data/config-internal.php`, **not** `config.php`, and the container's `ESPOCRM_DATABASE_*` env vars are read only at install time — copy a data dir without editing that file and the clone writes to the original's database. See [reference/multi-instance.md](reference/multi-instance.md).
 - **Backups**: `job` + `scheduled_job_log_record` are cron bookkeeping and routinely account for most of the database — exclude their *data* from the dump and it shrinks by orders of magnitude. Attachments live in `data/upload/`, not in the DB. See [reference/backup-and-restore.md](reference/backup-and-restore.md).
 
 ## The endpoints that work (the rest will give 404/405)
@@ -95,7 +96,8 @@ reference/
 ├── common-errors.md             validationFailure cases, 403/404/405/500 patterns
 ├── notifications.md             native assignment email vs a custom backend email
 ├── forensics.md                 attribute a record's create/delete via AuthLogRecord + access log
-└── backup-and-restore.md        what to exclude from the dump, and how to prove it restores
+├── backup-and-restore.md        what to exclude from the dump, and how to prove it restores
+└── multi-instance.md            cloning an instance, and operating safely with several
 scripts/
 ├── create-custom-entity-checklist.md   12-step end-to-end create flow
 └── primary-filter-templates/           PHP + JSON templates for filterable dashlets
