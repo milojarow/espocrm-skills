@@ -118,6 +118,60 @@ A record can be in multiple teams simultaneously — useful for cross-cutting gr
 
 Permission set. Assignment of `Role`s to `User`s controls who can do what. Don't edit Roles via the api user (it shouldn't have scope on `Role` — would let it self-escalate). Use admin path.
 
+## Shared ownership — the `collaborators` field
+
+`assignedUser` is single-valued. When a record is genuinely worked by two or more users (a customer two partners serve jointly), the native answer in 9.x is `collaborators`, not a second assignment field and not abusing Teams.
+
+### It ships disabled and is enabled per entity
+
+It's a boolean flag in the entity's `scopes`. Enable it over the API:
+
+```
+POST /api/v1/EntityManager/action/updateEntity
+{"name": "Account", "collaborators": true}
+```
+
+Returns `true` with HTTP 200 and persists to
+`custom/Espo/Custom/Resources/metadata/scopes/<Entity>.json` as `{"collaborators": true}`.
+
+Confirm the client is actually receiving it (this is what the UI consumes):
+
+```
+GET /api/v1/Metadata
+→ scopes.<Entity>.collaborators === true
+→ entityDefs.<Entity>.fields.collaborators.type === "linkMultiple"
+```
+
+It's declared in `Resources/metadata/app/entityManagerParams.json` under `@Base`, `@BasePlus`, `@Person` and `@Company`, so it applies to native entities and to custom entities inheriting those templates.
+
+### Writing it
+
+```
+PUT /api/v1/<Entity>/<id>
+{"assignedUserId": "<ownerId>", "collaboratorsIds": ["<userId1>", "<userId2>"]}
+```
+
+The response carries `collaboratorsNames` with the id→name map.
+
+Semantics: `assignedUser` remains **the single owner**; `collaborators` are the others sharing the record. Including the `assignedUser` themselves in the list is valid, and makes the record state "these two" explicitly instead of leaving it implicit.
+
+### Where it shows — and why it looks like it didn't work
+
+`collaborators` does **not** go in the detail layout. It renders in the record's **side panel**, next to `assignedUser` and `teams` (which aren't in the layout either). The `client/lib/espo-main.js` bundle drives it via `collaboratorsIds` / `collaboratorsFieldIsForbidden`.
+
+Verification trap: **the list endpoint does not return `linkMultiple` fields by default.**
+
+```
+GET /<Entity>?maxSize=20   →  collaboratorsNames absent    (looks empty)
+GET /<Entity>/<id>         →  collaboratorsNames populated (the truth)
+```
+
+Always verify against the individual record, never the list, or you'll conclude the write failed when it succeeded.
+
+### Interaction with roles
+
+A user with `read: all` on the entity sees the field with no extra configuration (verified by authenticating as that user and reading the record). To hide it, go through the Role's `fieldData`, not through the scope.
+
 ## Custom entity patterns for recurring revenue
 
 Concrete patterns that work well when you need to track recurring services and billing.
