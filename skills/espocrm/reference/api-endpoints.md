@@ -43,6 +43,22 @@ GET <base>/CSubscription?where[0][type]=linkedWith&where[0][attribute]=account&w
 
 Common `type` values: `equals`, `notEquals`, `contains`, `startsWith`, `endsWith`, `linkedWith`, `notLinkedWith`, `isNull`, `isNotNull`, `between`, `today`, `currentMonth`.
 
+Two more that matter when auditing data by Team — `linkedWith` / `isNotLinked` against the `teams` link:
+
+```bash
+# records belonging to a team
+GET <base>/<Entity>?where[0][type]=linkedWith&where[0][attribute]=teams&where[0][value][]=<teamId>
+
+# records with NO team at all — the ones every team-based sweep misses
+GET <base>/<Entity>?where[0][type]=isNotLinked&where[0][attribute]=teams
+```
+
+With `maxSize=1`, the response's `total` gives the real count without fetching the records.
+
+### `select` silently drops the `*Name` companions
+
+`GET /<Entity>?select=name,assignedUserId` does **not** return `assignedUserName`. Code that prints that field gets an empty string for every record and reads as "nothing is assigned to anyone" — a false negative that can trigger a needless mass reassignment. Either select `assignedUserId` and resolve names separately, or drop `select` and take the full response.
+
 ## Lead conversion
 
 There is **no single `convert` endpoint**. Lead conversion is an *orchestration* of the standard CRUD calls above. (An earlier version of this skill claimed `POST /Lead/<id>/convert` — that path is unverified and is not what any working tool uses. Don't rely on it.) Both the EspoCRM UI and the EspoMCP `convert_lead` tool do the same thing: create the target records, then flip the Lead's status to `Converted`.

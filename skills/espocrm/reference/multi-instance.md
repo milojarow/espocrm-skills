@@ -72,6 +72,36 @@ Schema, layouts, roles, custom fields and users all survive untouched. Credentia
 
 For backing up before any of this, see [backup-and-restore.md](backup-and-restore.md).
 
+## Pruning by Team — the records with no team are the ones that bite
+
+Step 5 of the clone-and-prune flow is a purge driven by `teams`. Listing syntax (both directions) is in [api-endpoints.md](api-endpoints.md) → "Querying with `where[]`".
+
+**The finding**: a purge that walks the entities deleting "everything tagged team X" leaves behind **everything that has no team at all**, and those records are not noise. In one split, the untagged leftovers were few — and *each one belonged to the opposite side from the instance it was sitting in*: a payment from one company's customer living in the other company's instance, and a lead whose description named the partner on the other side as the one handling the negotiation.
+
+Neither could be classified from metadata. Both were resolved by **reading the record** — its name, its description, which account it hangs off. The description almost always says whose it is.
+
+Procedure: after the team-based purge, sweep `isNotLinked teams` across **every** entity, print each record in full, and decide one at a time. Tag them while you're there, so they aren't orphans again at the next split.
+
+### Guards worth building into the purge script
+
+1. **Confirm the target before deleting anything.** Read `GET /Settings` and abort if `siteUrl` isn't exactly the expected instance. A purge script pointed at the wrong instance is catastrophic — see the section below.
+2. **Dry-run by default, `--apply` explicit.** Print what would go and how many, before touching anything.
+3. **Skip what also belongs to the other side.** If a record carries both the team being deleted *and* a team being kept, it's shared: don't delete it, report it. It may well come back zero — the guard is what lets you say so with evidence instead of assuming.
+4. **Delete via the API, not SQL.** `DELETE /<Entity>/<id>` is a soft delete (`deleted = true`) — reversible, and it lets EspoCRM handle the relationships.
+5. **Before deleting a Team**, move the `defaultTeamId` of any user pointing at it, or you leave dangling references.
+
+### Deactivating a user leaves records with no live owner
+
+Deactivate someone and everything assigned to them keeps pointing at an account that can no longer sign in. Nothing warns you. After any deactivation, sweep:
+
+```
+GET /<Entity>?maxSize=200   →  filter assignedUserId == <deactivated user> or empty
+```
+
+and reassign. In one observed case this left 18 orphaned records (accounts, contacts, subscriptions, invoices, payments and tasks — an entire book of business) with nothing reporting it.
+
+Reading the owner has its own trap: `select` drops the `*Name` companion fields. See [api-endpoints.md](api-endpoints.md) → "`select` silently drops the `*Name` companions".
+
 ## After the split: the default instance must be explicit
 
 **The failure mode.** `ESPOCRM_URL` — consumed by the admin helper, by scripts, and by the MCP server — points at *one* instance. After a split, the one left as default may be the one that no longer holds your data. Then:
