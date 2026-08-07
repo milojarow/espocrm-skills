@@ -458,6 +458,31 @@ mcp__espocrm__create_entity({
 
 The generic `create_entity` is the default for any record with non-trivial content (Spanish names, accented strings, unusual chars, custom fields). Only use specialized tools when you know all values are ASCII-clean and within their schema.
 
+### `search_entity` prints `undefined undefined` in the result list
+
+`search_entity` **finds the rows and counts them correctly** — the failure is only in how it renders each row's label. Its list formatter builds the display name from a per-type template that covers only some entity types (those with `firstName`/`lastName`); for anything it doesn't recognize it prints `undefined`:
+
+```
+search_entity · Contact                     →  "Name Surname", "Name Surname (mail@…)"     OK
+search_entity · a custom entity             →  "undefined undefined | Status: Active" ×N   BROKEN
+search_entity · Account                     →  "undefined undefined" ×N                    BROKEN
+get_entity    · the SAME custom-entity row  →  every field, correct                        OK
+```
+
+Two things that keep you from misdiagnosing it:
+
+- **It hits `Account`, which is not a custom entity.** So it is *not* "the MCP doesn't support custom entities" — the label template is wired per type and simply doesn't cover all of them.
+- **Passing `select: ["id","name"]` does NOT fix it.** The formatter ignores the selection; the problem is downstream of fetching the data.
+- **It is not credentials and not permissions.** Rule that out in one step: the *same* key over REST returns every field. Seeing `undefined undefined` is never a reason to go audit the API key or the role.
+
+**What to do instead** — this is the `skill → MCP → CLI → REST` ladder, and the MCP is the rung that falls short here:
+
+| Need | Use |
+|---|---|
+| Read one specific row | `get_entity` — generic formatter, works for any type |
+| List/filter a custom entity or `Account` | REST directly: `GET /api/v1/<Entity>?maxSize=N` with `X-Api-Key`, fields out with `jq` |
+| Discover the schema before writing (enum options, field list) | REST: `GET /api/v1/Metadata`, read `.entityDefs.<Entity>.fields.<field>.options` — the MCP doesn't help here either |
+
 ## 401 Unauthorized
 
 ### `X-Api-Key` returns 401

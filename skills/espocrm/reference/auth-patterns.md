@@ -139,6 +139,23 @@ Internal behavior to implement:
 | Modify Settings / sidebar tabList | admin (helper script) |
 | Read Metadata | works on both paths (admin sees more) |
 
+## Never conclude "this instance is open" from a 200 on `/Settings`
+
+`GET /api/v1/Settings` answers **200 without any credentials** — that is documented, intentional behavior (the frontend needs it before login). It is the single easiest way to talk yourself into believing the whole instance is unauthenticated, or that a request of yours was authenticated when it wasn't.
+
+Before drawing either conclusion, run the explicit **negative case**. Measured against an instance where every entity requires a session:
+
+```
+no header at all      → 401
+X-Api-Key: (empty)    → 401
+X-Api-Key: garbage    → 401
+```
+
+Two rules follow:
+
+- A 200 on `/Settings` proves **nothing** about your session — neither that you have one, nor that the instance is exposed. Probe an actual entity (`GET /api/v1/Account?maxSize=1`) to test authentication.
+- When you claim an endpoint needs no auth, you must have *tried it without auth and with a bad key* and seen them differ. An assertion about access control is only worth what its negative test is worth.
+
 ## Rotation playbook
 
 ### If the api-user key leaks
