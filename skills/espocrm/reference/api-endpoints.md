@@ -117,6 +117,8 @@ Content-Type: application/json
 
 Returns `{"name": "CSubscription"}`. EspoCRM prefixes custom entity names with `C` automatically.
 
+**The prefix is unconditional** — it is prepended even when the submitted name already starts with `C`. Sending `{"name": "CProbe"}` creates **`CCProbe`**, so `GET /CProbe` 404s and the entity looks like it was never created. Read the response's `name`, or list `GET /Metadata` → `scopes` filtered by `isCustom`, to find what actually landed; remove it with the doubled name (`POST /EntityManager/action/removeEntity {"name": "CCProbe"}`).
+
 `type` options: `Base` (no stream), `BasePlus` (with stream — recommended), `Person` (firstName/lastName fields), `Company`, `Hierarchy`, `Event`.
 
 WRONG endpoints (give 404 or are not registered):
@@ -297,6 +299,8 @@ PUT <base>/<Entity>/layout/<layoutName>
 ```
 
 `PUT` to `/Layout/<Entity>/<name>` returns 405. `POST` to either form returns 405 or 404. The only writing endpoint is `PUT` on the entity-prefixed form.
+
+**It replaces, it does not merge, and there is no history.** The body you send becomes the layout for every user; an empty array `[]` is accepted with a 200 and silently blanks the layout. EspoCRM keeps no layout versioning, so the only recovery is `POST /Layout/action/resetToDefault {"scope": "<Entity>", "name": "<layoutName>"}`, which restores the **stock** layout — any hand-arrangement the operator had made is gone for good. **Read and stash the current layout before writing one**, and never aim a layout `PUT` at a real entity as a throwaway test (see the write-control warning in [roles-and-acl.md](roles-and-acl.md)).
 
 ### Layout names of interest
 

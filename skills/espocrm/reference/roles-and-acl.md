@@ -47,6 +47,25 @@ POST /<Entity>/action/massExport   admin=404   restricted=404   <- endpoint does
 
 Same discipline for any claim that something is blocked: if the admin fails too, what's broken is the test.
 
+## The admin control must never be a WRITE verb against a real scope
+
+`POST /Export` is safe as a control — it only produces a file. Most admin-surface probes are not, and firing one "just as a control" **executes it**. Measured on a live 9.3.x instance while proving a `type=regular` user could not touch schema: the probe ran each endpoint twice, once restricted and once as admin, and the admin half performed every write.
+
+| probe | restricted | admin control | side effect on the instance |
+|---|---|---|---|
+| `PUT /Account/layout/detail` body `[]` | 403 | 200 | **detail layout blanked for every user** |
+| `PUT /Admin/fieldManager/Account/<field>` | 403 | 200 | custom field created |
+| `POST /EntityManager/action/createEntity` | 403 | 200 | entity created |
+| `POST /Team` | 403 | 200 | team created |
+| `POST /Admin/rebuild` | 403 | 200 | (harmless) |
+
+Rules that fall out:
+
+1. **Prove a write endpoint exists with a read, not a write.** `GET /Admin/fieldManager/<scope>/<field>` answers 200 for an admin and 403 for a regular user — that is a sufficient control for the whole fieldManager surface. Same for `GET /Role`, `GET /Team`, `GET /<Entity>/layout/<name>`.
+2. **A 403 on a write from the restricted side already carries its own control** once the matching *read* of the same admin surface answers 200 / 403 respectively. Reaching for a write control adds no information.
+3. If a write control is genuinely unavoidable, aim it at a **throwaway target** created for the probe — a scratch entity, field or team — never at a real scope like `Account`.
+4. `PUT /<Entity>/layout/<name>` is the worst one to touch by accident: idempotent overwrite, no merge, no history, and an empty array is accepted. See "Write/replace layout" in [api-endpoints.md](api-endpoints.md) for what recovery does and does not restore.
+
 ## A shape that works for a salesperson-style role
 
 ```
