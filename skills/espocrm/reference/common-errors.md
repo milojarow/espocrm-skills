@@ -35,6 +35,8 @@ Fix options:
 
 A required custom field exists on the entity but is missing in the payload.
 
+**Which custom fields are `required` varies per instance** — whoever configured that instance decided them. A payload that validated against another installation is no evidence it validates here. When a POST to a custom entity returns 400, read the error's `data.field` *before* changing anything else.
+
 Real-world example: a previous instance had a custom enum field `cBusinessUnit` marked required on multiple entities, used as a multi-tenancy hack before someone realized Teams existed. Removing it left some layouts with stale references; new POSTs failed with "field required". Always grep current required fields before composing payloads:
 
 ```bash
@@ -131,6 +133,36 @@ curl -sS -D - -o body.json ...
 then read the **HTTP status line**, the `x-status-reason` header, and the raw `body.json`. Confirm whether the record actually exists (`GET` with a filter / total count) before retrying, so you don't create a duplicate.
 
 **Isolate by subtraction:** re-send the same payload *without* the suspect field. If it now succeeds, that field was the cause — confirmed in a single retry.
+
+## Chained creates — a failed parent surfaces its error on the *child*
+
+Creating a chain (`Account → CInvoice → CPayment`) from a script: the parent `POST /CInvoice` failed, but the script read only `jq -r '.id'`, which on an **error body returns `null`** — no HTTP status in sight, no exception. Execution continued and the child `CPayment` creates went out with `"invoiceId": "null"` (the literal string). *Those* did return an error — pointing at the parent's entity type:
+
+```json
+{"label":"cannotRelateNonExisting","scope":null,"data":{"foreignEntityType":"CInvoice"}}
+```
+
+Read without context, that message sends you off to investigate **CInvoice** (does the scope exist? does the role have permission? was the record deleted?) when the defect was one line earlier, in the parent's POST. The real cause was visible only by asking for the raw body *and* the status:
+
+```
+{"messageTranslation":{"label":"validationFailure","scope":null,"data":{"field":"billingPeriod","type":"required"}}}
+HTTP 400
+```
+
+A custom field marked `required` on that instance. Nothing to do with permissions or relationships.
+
+Rules:
+
+1. **Validate the parent id before using it.** A bare `jq -r '.id'` turns one failure into a silent cascade.
+   ```bash
+   ID=$(printf '%s' "$RESP" | jq -r '.id')
+   [ -n "$ID" ] && [ "$ID" != "null" ] || { echo "$RESP"; exit 1; }
+   ```
+2. **Always ask for the status on creates**: `curl -w '\nHTTP %{http_code}\n' ...`. The error body carries `messageTranslation.data.field`, which names the exact field — the generic message does not.
+3. **`cannotRelateNonExisting` is almost never a problem with the entity it names.** Before auditing that entity's scopes or roles, verify that the id handed to it actually exists.
+4. Same root shape as the empty-body 403 cascade below: an id that was never assigned poisons every step after it, and the error you finally see names the wrong layer.
+
+**No orphans, at least.** When the parent create fails, nothing is left behind — the children bounce off validation and no record is created. Confirmed by comparing the entity's record count before and after.
 
 ## 403 Forbidden — common cases
 
