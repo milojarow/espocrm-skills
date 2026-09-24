@@ -18,20 +18,20 @@ You are operating against a self-hosted EspoCRM **9.x** instance. This skill exi
 
 Detail: [reference/auth-patterns.md](reference/auth-patterns.md).
 
-### HARD RULE — never create or update records via admin auth
+### Records are created and updated through the api user, not admin auth
 
-When you create or update **records** (Account, Contact, Lead, Opportunity, Meeting, Call, Task, Case, custom entities), **always use the api user via MCP / X-Api-Key**. Never the admin user via the helper script, even when faster or more convenient.
+When you create or update **records** (Account, Contact, Lead, Opportunity, Meeting, Call, Task, Case, custom entities), use the api user via MCP / X-Api-Key — not the admin user via the helper script, even when admin would be faster.
 
-Why this matters — and the failure mode you'll repeat if you ignore it:
+Why:
 
 - `createdBy` is the api user, which is consistent attribution across the system. Records created by the admin show up as the admin user and look orphaned from operational reports.
 - The `Stream` of every user (the home page activity feed) depends on `assignedUser` + `followers` + `createdBy`. Records made by admin without explicit `assignedUser` end up invisible to operational users' streams.
 - Workflows, triggers, and audit logs that depend on `createdBy` / `modifiedBy` won't fire correctly when admin is the actor.
 - The api user is the "service account" that does the day-to-day work. Bypassing it pollutes the audit trail.
 
-The admin path is **only for schema and structure**: creating Teams, editing Roles, creating/removing custom entities, custom fields, link management, layouts, settings, metadata. It is **not** for record CRUD even when the api user has not yet been granted scope on a new custom entity. In that case, **add the scope to the role first**, then create records via api user. Don't take the admin shortcut.
+The admin path is **only for schema and structure**: creating Teams, editing Roles, creating/removing custom entities, custom fields, link management, layouts, settings, metadata. It is **not** for record CRUD even when the api user has not yet been granted scope on a new custom entity. In that case, **add the scope to the role first**, then create records via api user.
 
-Common cause of this regression: when a new custom entity is created, the existing role does NOT auto-update to include scope on it. The api user gets 403 on records of the new entity. Tempting to fall back to admin auth for the initial seeding — don't. Update the role first.
+Common cause of this regression: when a new custom entity is created, the existing role does not auto-update to include scope on it, so the api user gets 403 on records of the new entity. Seed it through the api user once the role is updated.
 
 ## Recommended modeling decisions
 
